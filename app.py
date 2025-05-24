@@ -23,6 +23,10 @@ else:
 # Histórico + Média Móvel
 df = obter_historico(par)
 
+if df is None or df.empty:
+    st.warning("⚠️ Dados históricos não disponíveis para este par de moedas.")
+    st.stop()
+
 # Cálculo de média móvel
 df["SMA9"] = df["close"].rolling(window=9).mean()
 df["SMA21"] = df["close"].rolling(window=21).mean()

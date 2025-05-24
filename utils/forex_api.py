@@ -11,6 +11,10 @@ def obter_preco_atual(par="EUR/USD"):
 def obter_historico(par="EUR/USD", intervalo="1h", qtd=50):
     url = f"https://api.twelvedata.com/time_series?symbol={par}&interval={intervalo}&apikey={API_KEY}&outputsize={qtd}"
     r = requests.get(url).json()
+    
+    if "values" not in r:
+        return None  # Não tem dados históricos
+    
     df = pd.DataFrame(r["values"])
     df["datetime"] = pd.to_datetime(df["datetime"])
     df["close"] = df["close"].astype(float)
