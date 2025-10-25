@@ -48,3 +48,39 @@ elif df["SMA9"].iloc[-2] > df["SMA21"].iloc[-2] and df["SMA9"].iloc[-1] < df["SM
     st.error("🔔 SINAL DE **VENDA** detectado (SMA9 cruzou para baixo a SMA21)")
 else:
     st.info("⏳ Nenhum sinal claro no momento.")
+
+# ATUALIZAÇÃO
+st.subheader("🛒 Operações Simuladas")
+
+# Inicializa o histórico na sessão
+if "historico" not in st.session_state:
+    st.session_state.historico = []
+
+# Botões de simulação
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("✅ Comprar"):
+        st.session_state.historico.append({
+            "Data": pd.Timestamp.now(),
+            "Par": par,
+            "Preço": preco,
+            "Operação": "COMPRA"
+        })
+
+with col2:
+    if st.button("❌ Vender"):
+        st.session_state.historico.append({
+            "Data": pd.Timestamp.now(),
+            "Par": par,
+            "Preço": preco,
+            "Operação": "VENDA"
+        })
+
+# Exibir histórico
+df_ops = pd.DataFrame(st.session_state.historico)
+
+if not df_ops.empty:
+    st.dataframe(df_ops.sort_values("Data", ascending=False), use_container_width=True)
+else:
+    st.info("Nenhuma operação simulada registrada ainda.")
