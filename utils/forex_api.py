@@ -1,7 +1,7 @@
 import requests
 import pandas as pd
 
-API_KEY = "demo"  # Substitua por sua chave da TwelveData se quiser mais requisições
+API_KEY = "25f1ed33b0304894ab4d8d390f81da07"  # Substitua por sua chave da TwelveData se quiser mais requisições
 
 def obter_preco_atual(par="EUR/USD"):
     url = f"https://api.twelvedata.com/price?symbol={par}&apikey={API_KEY}"
