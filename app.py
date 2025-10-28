@@ -1,7 +1,12 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+from pathlib import Path
 from utils.forex_api import obter_preco_atual, obter_historico
+
+ARQUIVO_HISTORICO = Path("data/historico.csv")
+ARQUIVO_HISTORICO.parent.mkdir(parents=True, exist_ok=True)
 
 st.set_page_config(page_title="📈 Forex App", layout="wide")
 st.title("📊 Painel de Forex - App Pessoal")
@@ -52,32 +57,61 @@ else:
     # ====================
     st.subheader("🛒 Operações Simuladas")
 
+    # Inicializa o histórico (sessão + CSV)
     if "historico" not in st.session_state:
-        st.session_state.historico = []
+        if ARQUIVO_HISTORICO.exists():
+            st.session_state.historico = pd.read_csv(ARQUIVO_HISTORICO, parse_dates=["Data"]).to_dict("records")
+        else:
+            st.session_state.historico = []
 
+    # Botões de simulação
     col1, col2 = st.columns(2)
+
+    def registrar_operacao(tipo):
+        nova_op = {
+            "Data": pd.Timestamp.now(),
+            "Par": par,
+            "Preço": preco,
+            "Operação": tipo
+        }
+        st.session_state.historico.append(nova_op)
+        df_atual = pd.DataFrame(st.session_state.historico)
+        df_atual.to_csv(ARQUIVO_HISTORICO, index=False)
 
     with col1:
         if st.button("✅ Comprar"):
-            st.session_state.historico.append({
-                "Data": pd.Timestamp.now(),
-                "Par": par,
-                "Preço": preco,
-                "Operação": "COMPRA"
-            })
+            registrar_operacao("COMPRA")
 
     with col2:
         if st.button("❌ Vender"):
-            st.session_state.historico.append({
-                "Data": pd.Timestamp.now(),
-                "Par": par,
-                "Preço": preco,
-                "Operação": "VENDA"
-            })
+            registrar_operacao("VENDA")
 
     df_ops = pd.DataFrame(st.session_state.historico)
 
     if not df_ops.empty:
         st.dataframe(df_ops.sort_values("Data", ascending=False), use_container_width=True)
+
+        # Cálculo de lucro/prejuízo
+        lucro_total = 0
+        operacoes = []
+        entrada = None
+
+        for _, row in df_ops.iterrows():
+            if row["Operação"] == "COMPRA":
+                entrada = row
+            elif row["Operação"] == "VENDA" and entrada:
+                lucro = row["Preço"] - entrada["Preço"]
+                operacoes.append(f"{entrada['Par']}: COMPRA {entrada['Preço']:.2f} → VENDA {row['Preço']:.2f} = Lucro {lucro:.2f}")
+                lucro_total += lucro
+                entrada = None  # Zera após parear
+
+        if operacoes:
+            st.subheader("📊 Resumo de Resultados")
+            for op in operacoes:
+                st.write("•", op)
+
+            st.success(f"💰 Lucro/prejuízo acumulado: **${lucro_total:.2f}**")
+        else:
+            st.info("📋 Ainda não há pares completos de COMPRA e VENDA para calcular lucro.")
     else:
         st.info("Nenhuma operação simulada registrada ainda.")
