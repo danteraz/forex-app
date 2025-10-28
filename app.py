@@ -97,21 +97,23 @@ else:
         entrada = None
 
         for _, row in df_ops.iterrows():
-            if row["Operação"] == "COMPRA":
-                entrada = row
-            elif row["Operação"] == "VENDA" and entrada:
+            if row["Operação"] == "COMPRA" and entrada is None:
+                entrada = row  # Marca o ponto de entrada
+            elif row["Operação"] == "VENDA" and entrada is not None:
+                # Calcula lucro/prejuízo
                 lucro = row["Preço"] - entrada["Preço"]
-                operacoes.append(f"{entrada['Par']}: COMPRA {entrada['Preço']:.2f} → VENDA {row['Preço']:.2f} = Lucro {lucro:.2f}")
+                resultado = f"{entrada['Par']}: COMPRA {entrada['Preço']:.2f} → VENDA {row['Preço']:.2f} = Lucro {lucro:.2f}"
+                operacoes.append(resultado)
                 lucro_total += lucro
-                entrada = None  # Zera após parear
+                entrada = None  # Reseta para aguardar nova compra
+
+        st.subheader("📊 Resultados das Operações Simuladas")
 
         if operacoes:
-            st.subheader("📊 Resumo de Resultados")
             for op in operacoes:
                 st.write("•", op)
-
-            st.success(f"💰 Lucro/prejuízo acumulado: **${lucro_total:.2f}**")
+            st.success(f"💰 Lucro/Prejuízo acumulado: **${lucro_total:.2f}**")
         else:
-            st.info("📋 Ainda não há pares completos de COMPRA e VENDA para calcular lucro.")
+            st.info("Nenhum ciclo completo de COMPRA → VENDA foi registrado ainda.")
     else:
         st.info("Nenhuma operação simulada registrada ainda.")
