@@ -8,7 +8,11 @@ from utils.forex_api import obter_preco_atual, obter_historico
 ARQUIVO_HISTORICO = Path("data/historico.csv")
 ARQUIVO_HISTORICO.parent.mkdir(parents=True, exist_ok=True)
 
-st.set_page_config(page_title="📈 Forex App", layout="wide")
+st.set_page_config(
+    page_title="📈 Forex App", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 st.sidebar.title("📌 Navegação")
 pagina = st.sidebar.radio("Escolha a página:", ["🏠 Tela Principal", "🔔 Painel de Sinais"])
