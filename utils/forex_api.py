@@ -26,7 +26,8 @@ def obter_historico(par="EUR/USD", intervalo="1h", qtd=50):
     except:
         # Fallback: usa yfinance
         simbolo = converter_para_yfinance(par)
-        df_y = yf.download(simbolo, period="5d", interval="1h", progress=False)
+        df_y = yf.download(simbolo, period="5d", interval="1h", progress=False, auto_adjust=False)
+
         if df_y.empty:
             return None
         df_y.reset_index(inplace=True)
