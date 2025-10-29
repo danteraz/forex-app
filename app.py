@@ -30,10 +30,12 @@ if pagina == "🏠 Tela Principal":
     par = st.selectbox("Escolha o par de moedas", pares)
 
     preco = obter_preco_atual(par)
-    if preco:
+
+    if isinstance(preco, (float, int)):
         st.metric(label=f"💰 Preço atual de {par}", value=f"${preco}")
     else:
-        st.error("Erro ao obter o preço do par.")
+        st.warning("⚠️ Preço indisponível no momento. Pode ser uma falha temporária da API.")
+        preco = None
 
     df = obter_historico(par)
 
