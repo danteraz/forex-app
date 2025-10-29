@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,18 +11,15 @@ ARQUIVO_HISTORICO.parent.mkdir(parents=True, exist_ok=True)
 
 st.set_page_config(page_title="📈 Forex App", layout="wide")
 
-# Navegação lateral
 st.sidebar.title("📌 Navegação")
 pagina = st.sidebar.radio("Escolha a página:", ["🏠 Tela Principal", "🔔 Painel de Sinais"])
 
-# Inicializa histórico global
 if "historico" not in st.session_state:
     if ARQUIVO_HISTORICO.exists():
         st.session_state.historico = pd.read_csv(ARQUIVO_HISTORICO, parse_dates=["Data"]).to_dict("records")
     else:
         st.session_state.historico = []
 
-# ========== PÁGINA 1 ==========
 if pagina == "🏠 Tela Principal":
     st.title("📊 Painel de Forex - App Pessoal")
 
@@ -65,15 +63,18 @@ if pagina == "🏠 Tela Principal":
         col1, col2 = st.columns(2)
 
         def registrar_operacao(tipo):
-            nova_op = {
-                "Data": pd.Timestamp.now(),
-                "Par": par,
-                "Preço": preco,
-                "Operação": tipo
-            }
-            st.session_state.historico.append(nova_op)
-            df_atual = pd.DataFrame(st.session_state.historico)
-            df_atual.to_csv(ARQUIVO_HISTORICO, index=False)
+            if isinstance(preco, (float, int)):
+                nova_op = {
+                    "Data": pd.Timestamp.now(),
+                    "Par": par,
+                    "Preço": preco,
+                    "Operação": tipo
+                }
+                st.session_state.historico.append(nova_op)
+                df_atual = pd.DataFrame(st.session_state.historico)
+                df_atual.to_csv(ARQUIVO_HISTORICO, index=False)
+            else:
+                st.warning("⚠️ Preço inválido. Operação não registrada.")
 
         with col1:
             if st.button("✅ Comprar"):
@@ -113,7 +114,6 @@ if pagina == "🏠 Tela Principal":
         else:
             st.info("Nenhuma operação simulada registrada ainda.")
 
-# ========== PÁGINA 2 ==========
 elif pagina == "🔔 Painel de Sinais":
     st.title("🔔 Painel de Sinais de Forex - Monitoramento Ativo")
 
@@ -167,24 +167,31 @@ elif pagina == "🔔 Painel de Sinais":
 
     for row in resultados:
         col1, col2, col3 = st.columns([2, 2, 2])
-        col1.markdown(f"**{row['Par']}** — {row['Sinal']} — Preço: {row['Preço Atual']:.5f}")
+        preco_formatado = f"{row['Preço Atual']:.5f}" if isinstance(row['Preço Atual'], (float, int)) else "N/A"
+        col1.markdown(f"**{row['Par']}** — {row['Sinal']} — Preço: {preco_formatado}")
 
         if row["Pode Comprar"] and row["Sinal"] == "COMPRA":
             if col2.button(f"✅ Comprar {row['Par']}", key=f"comprar_{row['Par']}"):
-                st.session_state.historico.append({
-                    "Data": pd.Timestamp.now(),
-                    "Par": row["Par"],
-                    "Preço": row["Preço Atual"],
-                    "Operação": "COMPRA"
-                })
-                pd.DataFrame(st.session_state.historico).to_csv(ARQUIVO_HISTORICO, index=False)
+                if isinstance(row["Preço Atual"], (float, int)):
+                    st.session_state.historico.append({
+                        "Data": pd.Timestamp.now(),
+                        "Par": row["Par"],
+                        "Preço": row["Preço Atual"],
+                        "Operação": "COMPRA"
+                    })
+                    pd.DataFrame(st.session_state.historico).to_csv(ARQUIVO_HISTORICO, index=False)
+                else:
+                    st.warning(f"⚠️ Preço inválido para {row['Par']}. Operação ignorada.")
 
         if row["Pode Vender"] and row["Sinal"] == "VENDA":
             if col3.button(f"❌ Vender {row['Par']}", key=f"vender_{row['Par']}"):
-                st.session_state.historico.append({
-                    "Data": pd.Timestamp.now(),
-                    "Par": row["Par"],
-                    "Preço": row["Preço Atual"],
-                    "Operação": "VENDA"
-                })
-                pd.DataFrame(st.session_state.historico).to_csv(ARQUIVO_HISTORICO, index=False)
+                if isinstance(row["Preço Atual"], (float, int)):
+                    st.session_state.historico.append({
+                        "Data": pd.Timestamp.now(),
+                        "Par": row["Par"],
+                        "Preço": row["Preço Atual"],
+                        "Operação": "VENDA"
+                    })
+                    pd.DataFrame(st.session_state.historico).to_csv(ARQUIVO_HISTORICO, index=False)
+                else:
+                    st.warning(f"⚠️ Preço inválido para {row['Par']}. Operação ignorada.")
