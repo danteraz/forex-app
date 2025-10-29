@@ -140,8 +140,12 @@ elif pagina == "🔔 Painel de Sinais":
                 sinal = "NEUTRO"
 
         df_hist = pd.DataFrame(st.session_state.historico)
-        posicoes_abertas = df_hist[(df_hist["Par"] == par) & (df_hist["Operação"] == "COMPRA")]
-        posicao_ativa = not posicoes_abertas.empty
+
+        if "Par" in df_hist.columns and "Operação" in df_hist.columns:
+            posicoes_abertas = df_hist[(df_hist["Par"] == par) & (df_hist["Operação"] == "COMPRA")]
+            posicao_ativa = not posicoes_abertas.empty
+        else:
+            posicao_ativa = False
 
         if posicao_ativa:
             pode_comprar = False
